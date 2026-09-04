@@ -2,7 +2,7 @@
 // Cachea el "app shell" para que abra al instante y funcione sin internet.
 // Sube la versión (CACHE_NAME) cada vez que actualices index.html para forzar
 // que los usuarios reciban la nueva versión.
-const CACHE_NAME = 'cajita-v2';
+const CACHE_NAME = 'cajita-v3';
 const APP_SHELL = [
   './',
   './index.html',
