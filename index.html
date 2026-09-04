@@ -1554,12 +1554,22 @@ document.getElementById('popshare').addEventListener('click', function() {
   var msg = greet + '\n\n"' + verse.text + '"\n' + verse.ref + '\n\n🕊️ Enviado desde la Cajita de Promesas y Bendiciones';
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 });
+function speakableRef(ref) {
+  // Convierte "Juan 3:16" -> "Juan capítulo 3, versículo 16"
+  // y "Números 6:24-26" -> "Números capítulo 6, versículos 24 al 26"
+  // (evita que el sintetizador de voz lea "3:16" como si fuera una hora)
+  var m = ref.match(/^(.*?)\s+(\d+):(\d+)(?:-(\d+))?$/);
+  if (!m) return ref;
+  var book = m[1], chap = m[2], vStart = m[3], vEnd = m[4];
+  if (vEnd) return book + ' capítulo ' + chap + ', versículos ' + vStart + ' al ' + vEnd;
+  return book + ' capítulo ' + chap + ', versículo ' + vStart;
+}
 document.getElementById('poplisten').addEventListener('click', function() {
   if (!window.speechSynthesis) { showToast('Navegador no compatible con voz'); return; }
   window.speechSynthesis.cancel();
   var greet = document.getElementById('popgreet').textContent;
   var text = document.getElementById('popverse').textContent.replace(/"/g, '');
-  var ref = document.getElementById('popref').textContent;
+  var ref = speakableRef(document.getElementById('popref').textContent);
   var u = new SpeechSynthesisUtterance(greet + ' ' + text + '. ' + ref);
   u.lang = esVoice ? esVoice.lang : 'es-MX';
   if (esVoice) u.voice = esVoice;
