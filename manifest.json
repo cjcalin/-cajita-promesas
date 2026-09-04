@@ -1,0 +1,17 @@
+{
+  "name": "Cajita de Promesas y Bendiciones",
+  "short_name": "Cajita",
+  "description": "Promesas bíblicas personalizadas para cada persona que amas",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d0502",
+  "theme_color": "#0d0502",
+  "orientation": "any",
+  "lang": "es",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
