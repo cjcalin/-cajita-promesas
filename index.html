@@ -132,6 +132,54 @@ header { text-align: center; margin-bottom: 22px; }
   100% { opacity: 1; transform: scale(1.02); filter: drop-shadow(0 0 16px rgba(255,230,163,1)); }
 }
 
+.install-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(160deg, var(--wood-warm), var(--wood-mid));
+  border: 1px solid rgba(232,179,84,0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 14px auto 4px;
+  max-width: 560px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+  animation: fadeInBanner 0.5s ease both;
+}
+.install-banner.hid { display: none; }
+@keyframes fadeInBanner { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.ib-icon { font-size: 26px; flex-shrink: 0; }
+.ib-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ib-text b { color: var(--gold-light); font-size: 13.5px; line-height: 1.3; }
+.ib-text span { color: var(--ink-soft); font-size: 11.5px; opacity: 0.85; }
+.ib-btn {
+  flex-shrink: 0;
+  background: linear-gradient(160deg, var(--gold-glow), var(--gold-pure));
+  color: var(--wood-dark);
+  border: none;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(232,179,84,0.35);
+}
+.ib-btn:active { transform: scale(0.96); }
+.ib-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  opacity: 0.7;
+}
+.ib-close:hover { opacity: 1; }
+@media (max-width: 420px) {
+  .ib-text span { display: none; }
+  .install-banner { padding: 10px 12px; }
+}
+
 h1 {
   font-family: 'Fraunces', serif;
   font-weight: 600;
@@ -898,6 +946,16 @@ footer { text-align: center; margin-top: 50px; font-size: 11.5px; color: #7a6350
     <p class="sub">Jehová es mi Pastor</p>
     <p class="tg">Una promesa viva para cada persona que amas</p>
   </header>
+
+  <div class="install-banner hid" id="installBanner">
+    <span class="ib-icon">📲</span>
+    <span class="ib-text">
+      <b id="ibTitle">Instala esta app en tu celular</b>
+      <span id="ibSub">Acceso directo, sin buscarla en internet cada vez</span>
+    </span>
+    <button class="ib-btn" id="ibInstallBtn">Instalar</button>
+    <button class="ib-close" id="ibClose" aria-label="Cerrar">✕</button>
+  </div>
 
   <nav class="tags" id="tags"></nav>
 
@@ -1749,6 +1807,61 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+/* === Banner de instalación (que se sienta como app real) === */
+(function () {
+  var banner = document.getElementById('installBanner');
+  var btn = document.getElementById('ibInstallBtn');
+  var closeBtn = document.getElementById('ibClose');
+  var titleEl = document.getElementById('ibTitle');
+  var subEl = document.getElementById('ibSub');
+  var deferredPrompt = null;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function wasDismissed() {
+    try { return localStorage.getItem('cj_installDismissed') === '1'; } catch (e) { return false; }
+  }
+  function dismiss() {
+    try { localStorage.setItem('cj_installDismissed', '1'); } catch (e) {}
+    banner.classList.add('hid');
+  }
+
+  if (isStandalone() || wasDismissed()) {
+    // ya instalada o el usuario ya cerró el aviso antes: no molestar
+  } else {
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    if (isIOS) {
+      // iOS/Safari no permite instalar con un botón (restricción de Apple):
+      // se muestra la instrucción exacta, sin más pasos que buscar en menús.
+      titleEl.textContent = 'Instala esta app en tu iPhone';
+      subEl.textContent = 'Toca compartir 📤 abajo y luego "Agregar a pantalla de inicio"';
+      btn.textContent = 'Entendido';
+      banner.classList.remove('hid');
+      btn.addEventListener('click', dismiss);
+    } else {
+      // Android/Chrome/Edge: capturamos el evento nativo para un botón de 1 toque real
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        banner.classList.remove('hid');
+      });
+      btn.addEventListener('click', function () {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function () {
+          deferredPrompt = null;
+          banner.classList.add('hid');
+        });
+      });
+    }
+  }
+
+  closeBtn.addEventListener('click', dismiss);
+  window.addEventListener('appinstalled', function () { banner.classList.add('hid'); });
+})();
 </script>
 </body>
 </html>
